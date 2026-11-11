@@ -155,7 +155,9 @@ a.filter(e=>e.t>=d0&&e.t<d1).forEach(e=>{const c=e.hi?'var(--hiM)':'var(--loM)',
  if(e.hi)s+='<path d="M'+f1(x)+' '+f1(y+4)+'l-6 10h12z" fill="'+c+'"/>'+tx+' y="'+f1(y+29)+'" font-size="12" font-weight="600">'+hm(e.t)+'</text>'+tx+' y="'+f1(y+42)+'" font-size="11">'+Math.round(e.h)+'cm</text>';
  else s+='<path d="M'+f1(x)+' '+f1(y-4)+'l-6-10h12z" fill="'+c+'"/>'+tx+' y="'+f1(y-33)+'" font-size="12" font-weight="600">'+hm(e.t)+'</text>'+tx+' y="'+f1(y-20)+'" font-size="11">'+Math.round(e.h)+'cm</text>'});
 s+='<g class="tip" style="display:none" pointer-events="none"><line y1="'+T+'" y2="'+pb+'" stroke="var(--fg)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/><circle r="5" fill="var(--card)" stroke="var(--seaLine)" stroke-width="2.5"/><rect rx="5" fill="var(--card)" stroke="var(--seaLine)"/><text font-size="13" font-weight="600" fill="var(--fg)" text-anchor="middle" dominant-baseline="central"></text></g>';
-CH.set(sp,{d0,v,W,H,L,R,T,pb,X,Y});
+let nw=null;if(now>=d0&&now<d1){const i0=Math.floor((now-d0)/6e5),A=v[i0],B=v[i0+1];if(A&&B&&A[1]!=null&&B[1]!=null){const hh=A[1]+(B[1]-A[1])*((now-A[0])/6e5);nw={px:X(now),py:Y(hh),str:hm(now)+'　'+Math.round(hh)+'cm'}}}
+CH.set(sp,{d0,v,W,H,L,R,T,pb,X,Y,now:nw});
+if(nw)s+='<g class="nowtip" pointer-events="none"><circle r="5" fill="var(--card)" stroke="var(--now)" stroke-width="2.5"/><rect rx="5" fill="var(--card)" stroke="var(--now)"/><text font-size="13" font-weight="600" fill="var(--fg)" text-anchor="middle" dominant-baseline="central"></text></g>';
 return s+'</svg>'}
 
 function elong(t){const d=t/864e5+2440587.5-2451545,r=Math.PI/180,Lm=218.316+13.176396*d,Mm=134.963+13.064993*d,Ls=280.460+.9856474*d,Ms=357.529+.9856003*d,D=(Lm-Ls)*r,ml=Lm+6.289*Math.sin(Mm*r)+1.274*Math.sin(2*D-Mm*r)+.658*Math.sin(2*D)-.186*Math.sin(Ms*r),sl=Ls+1.915*Math.sin(Ms*r)+.02*Math.sin(2*Ms*r);let e=(ml-sl)%360;if(e>180)e-=360;if(e<-180)e+=360;return e}
@@ -168,13 +170,19 @@ $('#spots').innerHTML=S.spots.map((sp,i)=>'<section class="spot" data-i="'+i+'">
 +'<label class="s">基準港<select data-f="port">'+ports.map(p=>'<option'+(p===sp.port?' selected':'')+'>'+esc(p)+'</option>').join('')+'</select></label>'
 +'<button data-del="'+i+'" aria-label="削除">削除</button>'+adj('満潮','H',sp,'h')+adj('干潮','L',sp,'l')+locRow(sp)
 
-+'</div>'+chart(sp)+'</section>').join('');
++'</div>'+chart(sp)+'</section>').join('');layoutNow();
 $('#ports').innerHTML=ports.map(p=>{const a=S.ports[p];if(BI[p])return'<div class="mut">'+esc(p)+'：内蔵データ 2026/1/1〜2027/12/31（気象庁の潮位表）</div>';return'<div class="mut">'+esc(p)+'：'+(a.length?dstr(Math.min(...a.map(x=>x[0])))+'〜'+dstr(Math.max(...a.map(x=>x[0])))+'（'+a.length+'件）':'データなし')+' <button data-clr="'+esc(p)+'">クリア</button></div>'}).join('')}
 
 $('#spots').addEventListener('change',e=>{const f=e.target.dataset.f,i=e.target.closest('.spot')?.dataset.i;if(!f||i==null)return;
 S.spots[i][f]=(f!=='name'&&f!=='port'&&f!=='loc')?(Number(e.target.value)||0):e.target.value;save();render()});
+function layoutNow(){document.querySelectorAll('.spot').forEach(sec=>{const c=CH.get(S.spots[sec.dataset.i]),g=sec.querySelector('.nowtip');if(!c||!c.now||!g)return;
+ const[ci,rc,tx]=g.children,{px,py,str}=c.now;ci.setAttribute('cx',px);ci.setAttribute('cy',py);
+ tx.textContent=str;tx.setAttribute('x',0);tx.setAttribute('y',0);
+ const bb=tx.getBBox(),w=bb.width+18,h=bb.height+10,bx=Math.min(Math.max(px,c.L+w/2+2),c.W-c.R-w/2-2),by=py-16-h>c.T+2?py-16-h:py+16;
+ rc.setAttribute('x',bx-w/2);rc.setAttribute('y',by);rc.setAttribute('width',w);rc.setAttribute('height',h);tx.setAttribute('x',bx);tx.setAttribute('y',by+h/2)})}
+function syncNow(){document.querySelectorAll('.spot').forEach(sec=>{const t=sec.querySelector('.tip'),n=sec.querySelector('.nowtip');if(t&&n)n.style.display=t.style.display==='none'?'':'none'})}
 const tipHide=root=>(root||document).querySelectorAll('.tip').forEach(g=>g.style.display='none');
-function tipMove(e){const svg=e.target.closest&&e.target.closest('svg');if(!svg){return}
+function tipMove0(e){const svg=e.target.closest&&e.target.closest('svg');if(!svg){return}
  const sec=svg.closest('.spot'),c=sec&&CH.get(S.spots[sec.dataset.i]);if(!c)return;
  document.querySelectorAll('.tip').forEach(g=>{if(!svg.contains(g))g.style.display='none'});
  const g=svg.querySelector('.tip'),r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*c.W;
@@ -188,9 +196,10 @@ function tipMove(e){const svg=e.target.closest&&e.target.closest('svg');if(!svg)
  const bb=tx.getBBox(),w=bb.width+18,h=bb.height+10,bx=Math.min(Math.max(px,c.L+w/2+2),c.W-c.R-w/2-2),by=py-16-h>c.T+2?py-16-h:py+16;
  rc.setAttribute('x',bx-w/2);rc.setAttribute('y',by);rc.setAttribute('width',w);rc.setAttribute('height',h);
  tx.setAttribute('x',bx);tx.setAttribute('y',by+h/2)}
+const tipMove=e=>{tipMove0(e);syncNow()};
 $('#spots').addEventListener('pointermove',tipMove);
 $('#spots').addEventListener('pointerdown',tipMove);
-$('#spots').addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')tipHide()});
+$('#spots').addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){tipHide();syncNow()}});
 $('#spots').addEventListener('click',e=>{const pi=e.target.dataset.pin;if(pi!=null){const[x]=S.spots.splice(+pi,1);S.spots.unshift(x);save();render();return}const i=e.target.dataset.del;if(i==null)return;S.spots.splice(i,1);save();render()});
 $('#ports').addEventListener('click',e=>{const p=e.target.dataset.clr;if(!p)return;S.ports[p]=[];save();render()});
 $('#add').onclick=()=>{S.spots.push({name:'新しい釣り場',port:Object.keys(S.ports)[0],dtH:0,dtL:0,dhH:0,dhL:0});save();render()};
