@@ -1,0 +1,16 @@
+{
+  "name": "潮位グラフ",
+  "short_name": "潮位",
+  "description": "釣り場ごとの潮位と満潮・干潮、日の出・日の入りを表示します。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b3b4a",
+  "theme_color": "#0b6e7f",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
