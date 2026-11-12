@@ -1,6 +1,6 @@
 {
-  "name": "潮位グラフ",
-  "short_name": "潮位",
+  "name": "潮汐グラフ",
+  "short_name": "潮汐",
   "description": "釣り場ごとの潮位と満潮・干潮、日の出・日の入りを表示します。",
   "lang": "ja",
   "start_url": "./",
