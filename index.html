@@ -126,14 +126,14 @@ if(BI[sp.port]){const b=BI[sp.port];for(let t=d0;t<=d1;t+=6e5){while(j<a.length-
 const hs=v.filter(x=>x[1]!=null).map(x=>x[1]);
 if(!hs.length)return'<div class="empty">この日のデータがありません。内蔵データは2026年1月1日〜2027年12月31日です。</div>';
 const lo=Math.min(0,Math.floor((Math.min(...hs)-5)/50)*50),hi=Math.max(400,Math.ceil((Math.max(...hs)+5)/50)*50);
-const PH=matchMedia('(max-width:600px)').matches,z=PH?1.3:1,W=PH?400:600,H=PH?648:540,L=PH?8:12,R=PH?8:12,T=PH?54:44,B=PH?38:34,pb=H-B,X=t=>L+(t-d0)/D*(W-L-R),Y=h=>T+(hi-h)/(hi-lo)*(H-T-B),f1=x=>x.toFixed(1);
+const PH=matchMedia('(max-width:600px)').matches,z=PH?1.3:1,W=PH?400:600,H=PH?648:540,L=PH?8:42,R=PH?8:12,T=PH?54:44,B=PH?38:34,pb=H-B,X=t=>L+(t-d0)/D*(W-L-R),Y=h=>T+(hi-h)/(hi-lo)*(H-T-B),f1=x=>x.toFixed(1);
 const sn=sun(d0),xr=X(sn[0]),xs=X(sn[1]),ax='fill="var(--axis)" font-size="'+f1(11*z)+'"';
 let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(sp.name)+'の潮位グラフ">';
 s+='<rect x="'+L+'" y="'+T+'" width="'+(W-L-R)+'" height="'+(H-T-B)+'" fill="var(--day)"/>';
 const pp=v.filter(x=>x[1]!=null).map(x=>[X(x[0]),Y(x[1])]),line=pp.map((q,i)=>(i?'L':'M')+f1(q[0])+' '+f1(q[1])).join('');
 s+='<path d="'+line+'L'+f1(pp[pp.length-1][0])+' '+pb+'L'+f1(pp[0][0])+' '+pb+'Z" fill="var(--sea)"/>';
 for(let h=Math.ceil(lo/50)*50;h<=hi;h+=50){const y=Y(h);
- s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" '+(h===0?'stroke="var(--axis)" opacity=".5"':'stroke="var(--grid)"')+'/>'}
+ s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" '+(h===0?'stroke="var(--axis)" opacity=".5"':'stroke="var(--grid)"')+'/>'+(PH?'':'<text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end" '+ax+'>'+h+'</text>')}
 for(let k=0;k<=24;k++){const x=X(d0+k*36e5);s+='<line x1="'+x+'" x2="'+x+'" y1="'+T+'" y2="'+pb+'" stroke="var(--grid)"/>'+(k%2?'':'<text x="'+x+'" y="'+(H-12)+'" text-anchor="'+(k===24?'end':'middle')+'" '+ax+'>'+k+(PH?'':'時')+'</text>')}
 s+='<rect x="'+L+'" y="'+T+'" width="'+(xr-L)+'" height="'+(pb-T)+'" fill="var(--night)"/><rect x="'+xs+'" y="'+T+'" width="'+(W-R-xs)+'" height="'+(pb-T)+'" fill="var(--night)"/>';
 s+='<path d="'+line+'" fill="none" stroke="var(--seaLine)" stroke-width="2.5" stroke-linejoin="round"/>';
