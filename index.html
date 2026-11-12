@@ -31,6 +31,7 @@ button{cursor:pointer}button:hover{border-color:var(--acc)}
 .top .nm{font-weight:700;font-size:17px;width:9em}
 label.s{font-size:13px;color:var(--mut);display:flex;align-items:center;gap:4px}
 label.s input{width:4.5em}
+label.s input[data-f^=g]{width:5.5em}
 svg{width:100%;height:auto;display:block;margin-top:6px;touch-action:pan-y;cursor:crosshair}
 .ex{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;font-variant-numeric:tabular-nums}
 .ex b{font-weight:600}.h{color:var(--hi)}.l{color:var(--lo)}
@@ -81,6 +82,7 @@ S.spots.forEach(sp=>{if(sp.dtH===undefined){sp.dtH=sp.dtL=sp.dt||0;sp.dhH=sp.dhL
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 if(!S.mig1){S.spots.forEach(sp=>{if((sp.name==='沖家室'||sp.name==='油宇')&&sp.port==='広島'){sp.port='松山';sp.dtH=sp.dtL=sp.dhH=sp.dhL=0}});S.mig1=1;save()}
 if(!S.mig2){S.spots=S.spots.filter(sp=>sp.name!=='沖家室'&&sp.name!=='油宇');['広島','松山','呉'].forEach(n=>{if(!S.spots.some(sp=>sp.name===n))S.spots.push({name:n,port:n,dtH:0,dtL:0,dhH:0,dhL:0})});S.mig2=1;save()}
+if(!S.mig3){if(!S.spots.some(sp=>sp.name==='沖家室'))S.spots.push({name:'沖家室',port:'松山',dtH:0,dtL:6,gH:0.85,gL:1,dhH:22,dhL:0});S.mig3=1;save()}
 const dayStart=()=>{const[y,m,d]=S.date.split('-').map(Number);return new Date(y,m-1,d).getTime()};
 
 
@@ -98,7 +100,7 @@ const w=P[hi][0]-P[lo][0];if(w<=0)return P[lo][1];const s=(t-P[lo][0])/w,s2=s*s,
 return(2*s3-3*s2+1)*P[lo][1]+(s3-2*s2+s)*w*m[lo]+(-2*s3+3*s2)*P[hi][1]+(s3-s2)*w*m[hi]};
 BI[name]={ev,E}});
 })();
-function bpts(sp){const b=BI[sp.port];return b.E.map(e=>{const dh=e.hi?sp.dhH:sp.dhL;return{o:e.t,t:e.t+(e.hi?sp.dtH:sp.dtL)*6e4,h:e.h+dh,hi:e.hi,dh}}).sort((x,y)=>x.t-y.t)}
+function bpts(sp){const b=BI[sp.port];return b.E.map(e=>{const g=(e.hi?sp.gH:sp.gL)||1,dh=(g-1)*e.h+(e.hi?sp.dhH:sp.dhL);return{o:e.t,t:e.t+(e.hi?sp.dtH:sp.dtL)*6e4,h:e.h+dh,hi:e.hi,dh}}).sort((x,y)=>x.t-y.t)}
 function pts(sp){return BI[sp.port]?bpts(sp):[]}
 function mapUrl(loc){loc=(loc||'').trim();if(!loc)return'';
 const cu=(a,b)=>{a=+a;b=+b;return Math.abs(a)<=90&&Math.abs(b)<=180?'https://www.google.com/maps/search/?api=1&query='+a+','+b:''};
@@ -110,7 +112,7 @@ const n=loc.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[,，\s]\s*(-?\d{1,3}(?:\.\d+)?)$/);
 if(n){const r=cu(n[1],n[2]);if(r)return r}
 return'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(loc)}
 const locRow=sp=>{const u=mapUrl(sp.loc);return'<div class="adj"><span>位置</span><input class="loc" data-f="loc" value="'+esc(sp.loc||'')+'" placeholder="緯度,経度 または Googleマップのリンク" aria-label="釣り場の位置">'+(u?'<a class="btn" href="'+esc(u)+'" target="_blank" rel="noopener">地図</a>':'<span class="btn dis" style="width:auto;font-weight:400">地図</span>')+'</div>'};
-const adj=(lb,k,sp,c)=>'<div class="adj"><span class="'+c+'">'+lb+'</span><label class="s">時間差<input type="number" step="5" data-f="dt'+k+'" value="'+sp['dt'+k]+'">分</label><label class="s">潮位差<input type="number" step="5" data-f="dh'+k+'" value="'+sp['dh'+k]+'">cm</label></div>';
+const adj=(lb,k,sp,c)=>'<div class="adj"><span class="'+c+'">'+lb+'</span><label class="s">時間差<input type="number" step="5" data-f="dt'+k+'" value="'+sp['dt'+k]+'">分</label><label class="s">比率<input type="number" step="0.05" min="0.1" data-f="g'+k+'" value="'+(sp['g'+k]||1)+'">倍</label><label class="s">潮位差<input type="number" step="5" data-f="dh'+k+'" value="'+sp['dh'+k]+'">cm</label></div>';
 
 const SUN={lat:33.9,lon:132.3};
 function sun(d0){const r=Math.PI/180,J=(d0+432e5)/864e5+2440587.5,n=Math.ceil(J-2451545+.0008),Js=n-SUN.lon/360,M=(357.5291+.98560028*Js)%360,C=1.9148*Math.sin(M*r)+.02*Math.sin(2*M*r)+.0003*Math.sin(3*M*r),l=(M+C+180+102.9372)%360,Jt=2451545+Js+.0053*Math.sin(M*r)-.0069*Math.sin(2*l*r),dl=Math.asin(Math.sin(l*r)*Math.sin(23.4397*r)),w=Math.acos((Math.sin(-.833*r)-Math.sin(SUN.lat*r)*Math.sin(dl))/(Math.cos(SUN.lat*r)*Math.cos(dl)))/r,f=j=>(j-2440587.5)*864e5;return[f(Jt-w/360),f(Jt+w/360)]}
@@ -162,7 +164,7 @@ $('#spots').innerHTML=S.spots.map((sp,i)=>'<section class="spot" data-i="'+i+'">
 $('#ports').innerHTML=ports.map(p=>'<div class="mut">'+esc(p)+'：2026/1/1〜2027/12/31（気象庁の潮位表）</div>').join('')}
 
 $('#spots').addEventListener('change',e=>{const f=e.target.dataset.f,i=e.target.closest('.spot')?.dataset.i;if(!f||i==null)return;
-S.spots[i][f]=(f!=='name'&&f!=='port'&&f!=='loc')?(Number(e.target.value)||0):e.target.value;save();render()});
+S.spots[i][f]=(f==='gH'||f==='gL')?(Number(e.target.value)>0?Number(e.target.value):1):(f!=='name'&&f!=='port'&&f!=='loc')?(Number(e.target.value)||0):e.target.value;save();render()});
 function layoutNow(){document.querySelectorAll('.spot').forEach(sec=>{const c=CH.get(S.spots[sec.dataset.i]),g=sec.querySelector('.nowtip');if(!c||!c.now||!g)return;
  const[ci,rc,tx]=g.children,{px,py,str}=c.now;ci.setAttribute('cx',px);ci.setAttribute('cy',py);
  tx.textContent=str;tx.setAttribute('x',0);tx.setAttribute('y',0);
