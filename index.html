@@ -43,6 +43,7 @@ a.btn:hover{border-color:var(--acc)}.btn.dis{opacity:.45}
 .adj input.loc{flex:1;min-width:8em;width:auto}
 .adj{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;margin-top:4px}.adj>span{font-weight:600;width:2.6em}
 ul{padding-left:18px;margin:6px 0}
+@media (max-width:600px){main{padding:12px 6px 40px}.spot{padding:30px 6px 10px}}
 a{color:var(--acc)}
 #info{margin:12px 2px 0;font-size:18px;font-weight:700}#info span{font-weight:400;font-size:14px;color:var(--mut);margin-left:10px}
 #spots{display:grid;grid-template-columns:1fr;gap:12px;margin:12px 0}
@@ -125,30 +126,30 @@ if(BI[sp.port]){const b=BI[sp.port];for(let t=d0;t<=d1;t+=6e5){while(j<a.length-
 const hs=v.filter(x=>x[1]!=null).map(x=>x[1]);
 if(!hs.length)return'<div class="empty">この日のデータがありません。内蔵データは2026年1月1日〜2027年12月31日です。</div>';
 const lo=Math.min(0,Math.floor((Math.min(...hs)-5)/50)*50),hi=Math.max(400,Math.ceil((Math.max(...hs)+5)/50)*50);
-const W=600,H=540,L=42,R=42,T=44,B=34,pb=H-B,X=t=>L+(t-d0)/D*(W-L-R),Y=h=>T+(hi-h)/(hi-lo)*(H-T-B),f1=x=>x.toFixed(1);
-const sn=sun(d0),xr=X(sn[0]),xs=X(sn[1]),ax='fill="var(--axis)" font-size="11"';
+const PH=matchMedia('(max-width:600px)').matches,z=PH?1.3:1,W=PH?400:600,H=540,L=PH?38:42,R=PH?38:42,T=PH?54:44,B=PH?38:34,pb=H-B,X=t=>L+(t-d0)/D*(W-L-R),Y=h=>T+(hi-h)/(hi-lo)*(H-T-B),f1=x=>x.toFixed(1);
+const sn=sun(d0),xr=X(sn[0]),xs=X(sn[1]),ax='fill="var(--axis)" font-size="'+f1(11*z)+'"';
 let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(sp.name)+'の潮位グラフ">';
 s+='<rect x="'+L+'" y="'+T+'" width="'+(W-L-R)+'" height="'+(H-T-B)+'" fill="var(--day)"/>';
 const pp=v.filter(x=>x[1]!=null).map(x=>[X(x[0]),Y(x[1])]),line=pp.map((q,i)=>(i?'L':'M')+f1(q[0])+' '+f1(q[1])).join('');
 s+='<path d="'+line+'L'+f1(pp[pp.length-1][0])+' '+pb+'L'+f1(pp[0][0])+' '+pb+'Z" fill="var(--sea)"/>';
 for(let h=Math.ceil(lo/50)*50;h<=hi;h+=50){const y=Y(h);
  s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" '+(h===0?'stroke="var(--axis)" opacity=".5"':'stroke="var(--grid)"')+'/><text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end" '+ax+'>'+h+'</text><text x="'+(W-R+6)+'" y="'+(y+4)+'" '+ax+'>'+h+'</text>'}
-for(let k=0;k<=24;k++){const x=X(d0+k*36e5);s+='<line x1="'+x+'" x2="'+x+'" y1="'+T+'" y2="'+pb+'" stroke="var(--grid)"/>'+(k%2?'':'<text x="'+x+'" y="'+(H-12)+'" text-anchor="middle" '+ax+'>'+k+'時</text>')}
+for(let k=0;k<=24;k++){const x=X(d0+k*36e5);s+='<line x1="'+x+'" x2="'+x+'" y1="'+T+'" y2="'+pb+'" stroke="var(--grid)"/>'+(k%2?'':'<text x="'+x+'" y="'+(H-12)+'" text-anchor="middle" '+ax+'>'+k+(PH&&k<24?'':'時')+'</text>')}
 s+='<rect x="'+L+'" y="'+T+'" width="'+(xr-L)+'" height="'+(pb-T)+'" fill="var(--night)"/><rect x="'+xs+'" y="'+T+'" width="'+(W-R-xs)+'" height="'+(pb-T)+'" fill="var(--night)"/>';
 s+='<path d="'+line+'" fill="none" stroke="var(--seaLine)" stroke-width="2.5" stroke-linejoin="round"/>';
 const sunI=(x,up,t)=>{const y=22;let r='<path d="M'+(x-8)+' '+y+'A8 8 0 0 1 '+(x+8)+' '+y+'Z" fill="#f08a3c"/><line x1="'+(x-12)+'" x2="'+(x+12)+'" y1="'+y+'" y2="'+y+'" stroke="#f08a3c" stroke-width="1.5"/>';
  [-60,0,60].forEach(g=>{const q=(g-90)*Math.PI/180;r+='<line x1="'+f1(x+11*Math.cos(q))+'" y1="'+f1(y+11*Math.sin(q))+'" x2="'+f1(x+15*Math.cos(q))+'" y2="'+f1(y+15*Math.sin(q))+'" stroke="#f08a3c" stroke-width="1.5"/>'});
  r+=up?'<path d="M'+(x+16)+' '+(y-2)+'l3-5 3 5z" fill="#f08a3c"/>':'<path d="M'+(x+16)+' '+(y-7)+'l3 5 3-5z" fill="#f08a3c"/>';
- return r+'<text x="'+x+'" y="'+(T-6)+'" text-anchor="middle" font-size="12" fill="var(--fg)">'+(up?'日の出 ':'日の入 ')+hm(t)+'</text>'};
+ return r+'<text x="'+x+'" y="'+(T-6)+'" text-anchor="middle" font-size="'+f1(12*z)+'" fill="var(--fg)">'+(up?'日の出 ':'日の入 ')+hm(t)+'</text>'};
 s+=sunI(xr,true,sn[0])+sunI(xs,false,sn[1]);
-const now=Date.now();if(now>=d0&&now<d1)s+='<line x1="'+X(now)+'" x2="'+X(now)+'" y1="'+T+'" y2="'+pb+'" stroke="var(--now)" stroke-width="2"/><text x="'+(X(now)+4)+'" y="'+(T+14)+'" font-size="11" fill="var(--now)">いま</text>';
-a.filter(e=>e.t>=d0&&e.t<d1).forEach(e=>{const c=e.hi?'var(--hiM)':'var(--loM)',x=X(e.t),y=Y(e.h),tx='<text x="'+f1(x)+'" text-anchor="middle" fill="var(--fg)"';
- if(e.hi)s+='<path d="M'+f1(x)+' '+f1(y+4)+'l-6 10h12z" fill="'+c+'"/>'+tx+' y="'+f1(y+29)+'" font-size="12" font-weight="600">'+hm(e.t)+'</text>'+tx+' y="'+f1(y+42)+'" font-size="11">'+Math.round(e.h)+'cm</text>';
- else s+='<path d="M'+f1(x)+' '+f1(y-4)+'l-6-10h12z" fill="'+c+'"/>'+tx+' y="'+f1(y-33)+'" font-size="12" font-weight="600">'+hm(e.t)+'</text>'+tx+' y="'+f1(y-20)+'" font-size="11">'+Math.round(e.h)+'cm</text>'});
-s+='<g class="tip" style="display:none" pointer-events="none"><line y1="'+T+'" y2="'+pb+'" stroke="var(--fg)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/><circle r="5" fill="var(--card)" stroke="var(--seaLine)" stroke-width="2.5"/><rect rx="5" fill="var(--card)" stroke="var(--seaLine)"/><text font-size="13" font-weight="600" fill="var(--fg)" text-anchor="middle" dominant-baseline="central"></text></g>';
+const now=Date.now();if(now>=d0&&now<d1)s+='<line x1="'+X(now)+'" x2="'+X(now)+'" y1="'+T+'" y2="'+pb+'" stroke="var(--now)" stroke-width="2"/><text x="'+(X(now)+4)+'" y="'+(T+14)+'" font-size="'+f1(11*z)+'" fill="var(--now)">いま</text>';
+a.filter(e=>e.t>=d0&&e.t<d1).forEach(e=>{const c=e.hi?'var(--hiM)':'var(--loM)',x=X(e.t),y=Y(e.h),f2=11*z,f3=12*z,tx='<text x="'+f1(x)+'" text-anchor="middle" fill="var(--fg)"';
+ if(e.hi)s+='<path d="M'+f1(x)+' '+f1(y+4)+'l-6 10h12z" fill="'+c+'"/>'+tx+' y="'+f1(y+14+f3+3)+'" font-size="'+f1(f3)+'" font-weight="600">'+hm(e.t)+'</text>'+tx+' y="'+f1(y+14+f3+3+f2+2)+'" font-size="'+f1(f2)+'">'+Math.round(e.h)+'cm</text>';
+ else s+='<path d="M'+f1(x)+' '+f1(y-4)+'l-6-10h12z" fill="'+c+'"/>'+tx+' y="'+f1(y-20-f2-2)+'" font-size="'+f1(f3)+'" font-weight="600">'+hm(e.t)+'</text>'+tx+' y="'+f1(y-20)+'" font-size="'+f1(f2)+'">'+Math.round(e.h)+'cm</text>'});
+s+='<g class="tip" style="display:none" pointer-events="none"><line y1="'+T+'" y2="'+pb+'" stroke="var(--fg)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/><circle r="5" fill="var(--card)" stroke="var(--seaLine)" stroke-width="2.5"/><rect rx="5" fill="var(--card)" stroke="var(--seaLine)"/><text font-size="'+f1(13*z)+'" font-weight="600" fill="var(--fg)" text-anchor="middle" dominant-baseline="central"></text></g>';
 let nw=null;if(now>=d0&&now<d1){const i0=Math.floor((now-d0)/6e5),A=v[i0],B=v[i0+1];if(A&&B&&A[1]!=null&&B[1]!=null){const hh=A[1]+(B[1]-A[1])*((now-A[0])/6e5);nw={px:X(now),py:Y(hh),str:hm(now)+'　'+Math.round(hh)+'cm'}}}
 CH.set(sp,{d0,v,W,H,L,R,T,pb,X,Y,now:nw});
-if(nw)s+='<g class="nowtip" pointer-events="none"><circle r="5" fill="var(--card)" stroke="var(--now)" stroke-width="2.5"/><rect rx="5" fill="var(--card)" stroke="var(--now)"/><text font-size="13" font-weight="600" fill="var(--fg)" text-anchor="middle" dominant-baseline="central"></text></g>';
+if(nw)s+='<g class="nowtip" pointer-events="none"><circle r="5" fill="var(--card)" stroke="var(--now)" stroke-width="2.5"/><rect rx="5" fill="var(--card)" stroke="var(--now)"/><text font-size="'+f1(13*z)+'" font-weight="600" fill="var(--fg)" text-anchor="middle" dominant-baseline="central"></text></g>';
 return s+'</svg>'}
 
 function elong(t){const d=t/864e5+2440587.5-2451545,r=Math.PI/180,Lm=218.316+13.176396*d,Mm=134.963+13.064993*d,Ls=280.460+.9856474*d,Ms=357.529+.9856003*d,D=(Lm-Ls)*r,ml=Lm+6.289*Math.sin(Mm*r)+1.274*Math.sin(2*D-Mm*r)+.658*Math.sin(2*D)-.186*Math.sin(Ms*r),sl=Ls+1.915*Math.sin(Ms*r)+.02*Math.sin(2*Ms*r);let e=(ml-sl)%360;if(e>180)e-=360;if(e<-180)e+=360;return e}
@@ -197,6 +198,7 @@ $('#add').onclick=()=>{S.spots.push({name:'新しい釣り場',port:PORTS[0],dtH
 const shift=n=>{const[y,m,d]=S.date.split('-').map(Number);S.date=ds(new Date(y,m-1,d+n));render()};
 $('#prev').onclick=()=>shift(-1);$('#next').onclick=()=>shift(1);
 $('#today').onclick=()=>{S.date=ds(new Date());render()};
+try{matchMedia('(max-width:600px)').addEventListener('change',()=>render())}catch(e){}
 $('#date').onchange=e=>{if(e.target.value){S.date=e.target.value;render()}};
 render();
 try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}catch(e){}
