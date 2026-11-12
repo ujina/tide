@@ -83,6 +83,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 if(!S.mig1){S.spots.forEach(sp=>{if((sp.name==='沖家室'||sp.name==='油宇')&&sp.port==='広島'){sp.port='松山';sp.dtH=sp.dtL=sp.dhH=sp.dhL=0}});S.mig1=1;save()}
 if(!S.mig2){S.spots=S.spots.filter(sp=>sp.name!=='沖家室'&&sp.name!=='油宇');['広島','松山','呉'].forEach(n=>{if(!S.spots.some(sp=>sp.name===n))S.spots.push({name:n,port:n,dtH:0,dtL:0,dhH:0,dhL:0})});S.mig2=1;save()}
 if(!S.mig3){if(!S.spots.some(sp=>sp.name==='沖家室'))S.spots.push({name:'沖家室',port:'松山',dtH:0,dtL:6,gH:0.85,gL:1,dhH:22,dhL:0});S.mig3=1;save()}
+if(!S.mig4){if(!S.spots.some(sp=>sp.name==='油宇ゴロタ'))S.spots.push({name:'油宇ゴロタ',port:'松山',dtH:4,dtL:8,gH:1,gL:1,dhH:-4,dhL:4});S.mig4=1;save()}
 const dayStart=()=>{const[y,m,d]=S.date.split('-').map(Number);return new Date(y,m-1,d).getTime()};
 
 
