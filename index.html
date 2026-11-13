@@ -103,6 +103,17 @@ BI[name]={ev,E}});
 })();
 function bpts(sp){const b=BI[sp.port];return b.E.map(e=>{const g=(e.hi?sp.gH:sp.gL)||1,dh=(g-1)*e.h+(e.hi?sp.dhH:sp.dhL);return{o:e.t,t:e.t+(e.hi?sp.dtH:sp.dtL)*6e4,h:e.h+dh,hi:e.hi,dh}}).sort((x,y)=>x.t-y.t)}
 function pts(sp){return BI[sp.port]?bpts(sp):[]}
+const PORT_LL={'広島':[34.35,132.47],'呉':[34.23,132.55],'松山':[33.87,132.72],'岩国':[34.18,132.23],'大畠':[33.95,132.17],'宇和島':[33.23,132.55],'長浜':[33.62,132.48],'今治':[34.07,133.0],'土生':[34.3,133.17],'福山':[34.48,133.42],'水島':[34.53,133.73],'宇野':[34.48,133.95],'坂出':[34.33,133.85]};
+function locLL(loc){loc=(loc||'').trim();if(!loc)return null;
+const ok=(a,b)=>{a=+a;b=+b;return Math.abs(a)<=90&&Math.abs(b)<=180?[a,b]:null};
+let m=loc.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||loc.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)||loc.match(/[?&](?:q|ll|query)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+if(m&&/^https:\/\//i.test(loc))return ok(m[1],m[2]);
+m=loc.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[,，\s]\s*(-?\d{1,3}(?:\.\d+)?)$/);
+return m?ok(m[1],m[2]):null}
+function nearestPort(ll){const R=Math.PI/180;let best=null;
+for(const p of PORTS){const q=PORT_LL[p];if(!q)continue;
+const a=Math.sin((q[0]-ll[0])*R/2)**2+Math.cos(ll[0]*R)*Math.cos(q[0]*R)*Math.sin((q[1]-ll[1])*R/2)**2,d=12742*Math.asin(Math.sqrt(a));
+if(!best||d<best.d)best={p,d}}return best}
 function mapUrl(loc){loc=(loc||'').trim();if(!loc)return'';
 const cu=(a,b)=>{a=+a;b=+b;return Math.abs(a)<=90&&Math.abs(b)<=180?'https://www.google.com/maps/search/?api=1&query='+a+','+b:''};
 if(/^https:\/\//i.test(loc)){try{const u=new URL(loc);
@@ -112,7 +123,10 @@ if(/^https:\/\//i.test(loc)){try{const u=new URL(loc);
 const n=loc.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[,，\s]\s*(-?\d{1,3}(?:\.\d+)?)$/);
 if(n){const r=cu(n[1],n[2]);if(r)return r}
 return'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(loc)}
-const locRow=sp=>{const u=mapUrl(sp.loc);return'<div class="adj"><span>位置</span><input class="loc" data-f="loc" value="'+esc(sp.loc||'')+'" placeholder="緯度,経度 または Googleマップのリンク" aria-label="釣り場の位置">'+(u?'<a class="btn" href="'+esc(u)+'" target="_blank" rel="noopener">地図</a>':'<span class="btn dis" style="width:auto;font-weight:400">地図</span>')+'</div>'};
+const locRow=sp=>{const u=mapUrl(sp.loc);return'<div class="adj"><span>位置</span><input class="loc" data-f="loc" value="'+esc(sp.loc||'')+'" placeholder="緯度,経度 または Googleマップのリンク" aria-label="釣り場の位置">'+(u?'<a class="btn" href="'+esc(u)+'" target="_blank" rel="noopener">地図</a>':'<span class="btn dis" style="width:auto;font-weight:400">地図</span>')+'</div>'+nearRow(sp)};
+const nearRow=sp=>{const ll=locLL(sp.loc);if(!ll)return'';const n=nearestPort(ll);if(!n)return'';
+const km=n.d<10?n.d.toFixed(1):Math.round(n.d),far=n.d>60?'（遠いので参考程度）':'';
+return'<div class="adj near"><span class="mut" style="width:auto;font-weight:400">最寄りの基準港：<b>'+esc(n.p)+'</b>（約'+km+'km）'+far+'</span>'+(n.p===sp.port?'<span class="mut">選択中</span>':'<button data-near="'+esc(n.p)+'">基準港にする</button>')+'</div>'};
 const adj=(lb,k,sp,c)=>'<div class="adj"><span class="'+c+'">'+lb+'</span><label class="s">時間差<input type="number" step="5" data-f="dt'+k+'" value="'+sp['dt'+k]+'">分</label><label class="s">比率<input type="number" step="0.05" min="0.1" data-f="g'+k+'" value="'+(sp['g'+k]||1)+'">倍</label><label class="s">潮位差<input type="number" step="5" data-f="dh'+k+'" value="'+sp['dh'+k]+'">cm</label></div>';
 
 const SUN={lat:33.9,lon:132.3};
@@ -193,7 +207,7 @@ const tipMove=e=>{tipMove0(e);syncNow()};
 $('#spots').addEventListener('pointermove',tipMove);
 $('#spots').addEventListener('pointerdown',tipMove);
 $('#spots').addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){tipHide();syncNow()}});
-$('#spots').addEventListener('click',e=>{const ai=e.target.dataset.adj;if(ai!=null){const sp=S.spots[+ai];OPEN.has(sp)?OPEN.delete(sp):OPEN.add(sp);render();return}const pi=e.target.dataset.pin;if(pi!=null){const[x]=S.spots.splice(+pi,1);S.spots.unshift(x);save();render();return}const i=e.target.dataset.del;if(i==null)return;S.spots.splice(i,1);save();render()});
+$('#spots').addEventListener('click',e=>{const nr=e.target.dataset.near;if(nr!=null){const i=e.target.closest('.spot').dataset.i;S.spots[i].port=nr;save();render();return}const ai=e.target.dataset.adj;if(ai!=null){const sp=S.spots[+ai];OPEN.has(sp)?OPEN.delete(sp):OPEN.add(sp);render();return}const pi=e.target.dataset.pin;if(pi!=null){const[x]=S.spots.splice(+pi,1);S.spots.unshift(x);save();render();return}const i=e.target.dataset.del;if(i==null)return;S.spots.splice(i,1);save();render()});
 $('#add').onclick=()=>{S.spots.push({name:'新しい釣り場',port:PORTS[0],dtH:0,dtL:0,dhH:0,dhL:0});save();render()};
 const shift=n=>{const[y,m,d]=S.date.split('-').map(Number);S.date=ds(new Date(y,m-1,d+n));render()};
 $('#prev').onclick=()=>shift(-1);$('#next').onclick=()=>shift(1);
