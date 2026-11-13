@@ -110,10 +110,10 @@ let m=loc.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||loc.match(/!3d(-?\d+\.\d+)!4d(-?\
 if(m&&/^https:\/\//i.test(loc))return ok(m[1],m[2]);
 m=loc.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[,，\s]\s*(-?\d{1,3}(?:\.\d+)?)$/);
 return m?ok(m[1],m[2]):null}
-function nearestPort(ll){const R=Math.PI/180;let best=null;
-for(const p of PORTS){const q=PORT_LL[p];if(!q)continue;
-const a=Math.sin((q[0]-ll[0])*R/2)**2+Math.cos(ll[0]*R)*Math.cos(q[0]*R)*Math.sin((q[1]-ll[1])*R/2)**2,d=12742*Math.asin(Math.sqrt(a));
-if(!best||d<best.d)best={p,d}}return best}
+function distKm(ll,p){const q=PORT_LL[p];if(!q)return null;const R=Math.PI/180;
+const a=Math.sin((q[0]-ll[0])*R/2)**2+Math.cos(ll[0]*R)*Math.cos(q[0]*R)*Math.sin((q[1]-ll[1])*R/2)**2;return 12742*Math.asin(Math.sqrt(a))}
+const fmtKm=d=>d<10?d.toFixed(1):Math.round(d);
+function nearestPort(ll){let best=null;for(const p of PORTS){const d=distKm(ll,p);if(d!=null&&(!best||d<best.d))best={p,d}}return best}
 function mapUrl(loc){loc=(loc||'').trim();if(!loc)return'';
 const cu=(a,b)=>{a=+a;b=+b;return Math.abs(a)<=90&&Math.abs(b)<=180?'https://www.google.com/maps/search/?api=1&query='+a+','+b:''};
 if(/^https:\/\//i.test(loc)){try{const u=new URL(loc);
@@ -124,9 +124,10 @@ const n=loc.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[,，\s]\s*(-?\d{1,3}(?:\.\d+)?)$/);
 if(n){const r=cu(n[1],n[2]);if(r)return r}
 return'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(loc)}
 const locRow=sp=>{const u=mapUrl(sp.loc);return'<div class="adj"><span>位置</span><input class="loc" data-f="loc" value="'+esc(sp.loc||'')+'" placeholder="緯度,経度 または Googleマップのリンク" aria-label="釣り場の位置">'+(u?'<a class="btn" href="'+esc(u)+'" target="_blank" rel="noopener">地図</a>':'<span class="btn dis" style="width:auto;font-weight:400">地図</span>')+'</div>'+nearRow(sp)};
-const nearRow=sp=>{const ll=locLL(sp.loc);if(!ll)return'';const n=nearestPort(ll);if(!n)return'';
-const km=n.d<10?n.d.toFixed(1):Math.round(n.d),far=n.d>60?'（遠いので参考程度）':'';
-return'<div class="adj near"><span class="mut" style="width:auto;font-weight:400">最寄りの基準港：<b>'+esc(n.p)+'</b>（約'+km+'km）'+far+'</span>'+(n.p===sp.port?'<span class="mut">選択中</span>':'<button data-near="'+esc(n.p)+'">基準港にする</button>')+'</div>'};
+const portLabel=(sp,p)=>{const ll=locLL(sp.loc);if(!ll)return p;const d=distKm(ll,p);if(d==null)return p;const n=nearestPort(ll);return p+' 約'+fmtKm(d)+'km'+(n&&n.p===p?'・最寄り':'')};
+const nearRow=sp=>{const ll=locLL(sp.loc);if(!ll)return'';const n=nearestPort(ll);if(!n||n.p===sp.port)return'';
+const far=n.d>60?'（遠いので参考程度）':'';
+return'<div class="adj near"><span class="mut" style="width:auto;font-weight:400">最寄りの基準港：<b>'+esc(n.p)+'</b>（約'+fmtKm(n.d)+'km）'+far+'</span><button data-near="'+esc(n.p)+'">基準港にする</button></div>'};
 const adj=(lb,k,sp,c)=>'<div class="adj"><span class="'+c+'">'+lb+'</span><label class="s">時間差<input type="number" step="5" data-f="dt'+k+'" value="'+sp['dt'+k]+'">分</label><label class="s">比率<input type="number" step="0.05" min="0.1" data-f="g'+k+'" value="'+(sp['g'+k]||1)+'">倍</label><label class="s">潮位差<input type="number" step="5" data-f="dh'+k+'" value="'+sp['dh'+k]+'">cm</label></div>';
 
 const SUN={lat:33.9,lon:132.3};
@@ -173,7 +174,7 @@ const OPEN=new WeakSet(),hasAdj=sp=>['dtH','dtL','dhH','dhL'].some(k=>sp[k])||(s
 function render(){$('#date').value=S.date;const mi=moonInfo(dayStart()+432e5),dd=new Date(dayStart());$('#info').innerHTML=(dd.getMonth()+1)+'月'+dd.getDate()+'日（'+'日月火水木金土'[dd.getDay()]+'）　'+mi.name+'<span>月齢 '+mi.age.toFixed(1)+'</span>';
 const ports=PORTS;
 $('#spots').innerHTML=S.spots.map((sp,i)=>'<section class="spot" data-i="'+i+'"><button class="pin" data-pin="'+i+'"'+(i===0?' disabled':'')+' aria-label="'+esc(sp.name)+'を最上位に移動" title="最上位に移動">▲</button><div class="top"><input class="nm" data-f="name" value="'+esc(sp.name)+'" aria-label="釣り場の名前">'
-+'<label class="s"><select data-f="port" aria-label="基準港">'+ports.map(p=>'<option'+(p===sp.port?' selected':'')+'>'+esc(p)+'</option>').join('')+'</select></label>'
++'<label class="s"><select data-f="port" aria-label="基準港">'+ports.map(p=>'<option value="'+esc(p)+'"'+(p===sp.port?' selected':'')+'>'+esc(portLabel(sp,p))+'</option>').join('')+'</select></label>'
 +'<button class="tg'+(OPEN.has(sp)?' on':'')+'" data-adj="'+i+'" aria-expanded="'+OPEN.has(sp)+'" aria-label="補正の入力欄を'+(OPEN.has(sp)?'閉じる':'開く')+(hasAdj(sp)?'（補正あり）':'')+'">補正'+(hasAdj(sp)?'●':'')+'</button>'
 +'<button data-del="'+i+'" aria-label="削除">削除</button>'+(OPEN.has(sp)?adj('満潮','H',sp,'h')+adj('干潮','L',sp,'l'):'')+locRow(sp)
 
