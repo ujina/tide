@@ -124,7 +124,7 @@ const n=loc.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[,，\s]\s*(-?\d{1,3}(?:\.\d+)?)$/);
 if(n){const r=cu(n[1],n[2]);if(r)return r}
 return'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(loc)}
 const locRow=sp=>{const u=mapUrl(sp.loc);return'<div class="adj"><span>位置</span><input class="loc" data-f="loc" value="'+esc(sp.loc||'')+'" placeholder="緯度,経度 または Googleマップのリンク" aria-label="釣り場の位置">'+(u?'<a class="btn" href="'+esc(u)+'" target="_blank" rel="noopener">地図</a>':'<span class="btn dis" style="width:auto;font-weight:400">地図</span>')+'</div>'+nearRow(sp)};
-const portLabel=(sp,p)=>{const ll=locLL(sp.loc);if(!ll)return p;const d=distKm(ll,p);if(d==null)return p;const n=nearestPort(ll);return p+' 約'+fmtKm(d)+'km'+(n&&n.p===p?'・最寄り':'')};
+const portLabel=(sp,p)=>{const ll=locLL(sp.loc);if(!ll)return p;const d=distKm(ll,p);if(d==null)return p;return p+' 約'+fmtKm(d)+'km'};
 const nearRow=sp=>{const ll=locLL(sp.loc);if(!ll)return'';const n=nearestPort(ll);if(!n||n.p===sp.port)return'';
 const far=n.d>60?'（遠いので参考程度）':'';
 return'<div class="adj near"><span class="mut" style="width:auto;font-weight:400">最寄りの基準港：<b>'+esc(n.p)+'</b>（約'+fmtKm(n.d)+'km）'+far+'</span><button data-near="'+esc(n.p)+'">基準港にする</button></div>'};
